@@ -3,79 +3,109 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Code-a-Bot: 36 Level Challenge</title>
+    <title>Code-a-Bot: The 36 Challenge</title>
     <style>
-        :root { --primary: #4f46e5; --success: #10b981; --warn: #f59e0b; --danger: #ef4444; }
-        body { font-family: 'Comic Sans MS', cursive, sans-serif; text-align: center; background: #e0f2fe; margin: 0; padding: 10px; }
-        #game-box { max-width: 600px; margin: auto; background: white; border-radius: 20px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        .stats-bar { display: flex; justify-content: space-around; margin-bottom: 10px; font-size: 1.2rem; background: #f8fafc; padding: 10px; border-radius: 10px; }
+        :root { --primary: #4f46e5; --success: #10b981; --warn: #f59e0b; --danger: #ef4444; --bg: #f0f4f8; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); display: flex; justify-content: center; padding: 20px; margin: 0; }
+        
+        #main-container { display: flex; gap: 20px; max-width: 900px; width: 100%; }
+        
+        /* Game Area */
+        #game-box { flex: 2; background: white; border-radius: 20px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; }
+        
+        /* Sidebar Area */
+        #sidebar { flex: 1; background: #fff; border-radius: 20px; padding: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); max-height: 85vh; overflow-y: auto; }
+        .lvl-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+        .lvl-btn { aspect-ratio: 1; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; background: #e2e8f0; color: #94a3b8; font-size: 14px; transition: 0.2s; }
+        .lvl-btn.unlocked { background: #3b82f6; color: white; }
+        .lvl-btn.completed-3 { background: var(--success); color: white; }
+        .lvl-btn.completed-less { background: var(--warn); color: white; }
+        .lvl-btn.active { outline: 4px solid #6366f1; transform: scale(1.1); z-index: 5; }
+
+        /* Game Elements */
         .grid { display: grid; gap: 4px; justify-content: center; margin: 15px auto; background: #cbd5e1; padding: 8px; border-radius: 10px; width: fit-content; }
-        .cell { width: 45px; height: 45px; background: white; display: flex; align-items: center; justify-content: center; font-size: 24px; border-radius: 4px; }
+        .cell { width: 40px; height: 40px; background: white; display: flex; align-items: center; justify-content: center; font-size: 20px; border-radius: 4px; }
         .wall { background: #475569 !important; }
-        .controls button { padding: 12px; font-size: 20px; cursor: pointer; border: none; border-radius: 8px; background: var(--primary); color: white; margin: 3px; }
+        .star-active { color: #fbbf24; font-size: 30px; text-shadow: 0 0 5px rgba(251, 191, 36, 0.5); }
+        .star-empty { color: #d1d5db; font-size: 30px; }
+        
+        #program-queue { min-height: 40px; border: 2px dashed #cbd5e1; margin: 10px 0; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+        .controls button { padding: 10px; font-size: 18px; border-radius: 8px; border: none; background: var(--primary); color: white; cursor: pointer; margin: 2px; }
         .run-btn { background: var(--success) !important; width: 100%; margin-top: 10px !important; font-weight: bold; }
-        #program-queue { min-height: 50px; border: 2px dashed #94a3b8; margin: 10px 0; display: flex; align-items: center; justify-content: center; font-size: 20px; border-radius: 10px; }
-        .star-gold { color: gold; font-size: 24px; }
-        .star-gray { color: #d1d5db; font-size: 24px; }
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; color: white; flex-direction: column; z-index: 100; }
+        
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; color: white; flex-direction: column; z-index: 100; text-align: center; }
     </style>
 </head>
 <body>
 
-<div id="game-box">
-    <h2 style="margin:0">🤖 Level <span id="lvl-num">1</span></h2>
-    <div class="stats-bar">
-        <div>⏳ <span id="timer">0</span>s</div>
-        <div>⭐ <span id="stars-display"></span></div>
+<div id="main-container">
+    <div id="game-box">
+        <h2 style="margin:0">🤖 Level <span id="lvl-num">1</span></h2>
+        <div style="display: flex; justify-content: space-around; align-items: center; margin: 10px 0;">
+            <div style="font-size: 24px; font-weight: bold;">⏳ <span id="timer">20</span>s</div>
+            <div id="star-rating">
+                <span class="star-active">⭐</span><span class="star-active">⭐</span><span class="star-active">⭐</span>
+            </div>
+        </div>
+
+        <div id="grid" class="grid"></div>
+        <div id="program-queue">Queue: </div>
+
+        <div class="controls">
+            <button onclick="addCmd('⬅️')">⬅️</button>
+            <button onclick="addCmd('⬆️')">⬆️</button>
+            <button onclick="addCmd('⬇️')">⬇️</button>
+            <button onclick="addCmd('➡️')">➡️</button>
+            <button style="background:var(--danger)" onclick="resetLevel()">🔄 Clear</button>
+            <button class="run-btn" onclick="execute()">▶️ START PROGRAM</button>
+        </div>
     </div>
 
-    <div id="grid" class="grid"></div>
-    <div id="program-queue">Queue: </div>
-
-    <div class="controls">
-        <button onclick="addCmd('⬅️')">⬅️</button>
-        <button onclick="addCmd('⬆️')">⬆️</button>
-        <button onclick="addCmd('⬇️')">⬇️</button>
-        <button onclick="addCmd('➡️')">➡️</button>
-        <button style="background:var(--danger)" onclick="resetLevel()">🔄 Reset</button>
-        <button class="run-btn" onclick="execute()">🚀 RUN!</button>
+    <div id="sidebar">
+        <h3 style="margin-top:0">Level Map</h3>
+        <div class="lvl-grid" id="sidebar-grid"></div>
     </div>
 </div>
 
 <div id="modal" class="modal">
     <h1 id="modal-title">Success!</h1>
-    <div id="modal-stars" style="font-size: 50px;"></div>
-    <p id="modal-msg"></p>
-    <button onclick="closeModal()" style="padding:15px 30px; font-size:20px; border-radius:10px; cursor:pointer">Next Level ➡️</button>
+    <div id="modal-stars" style="font-size: 60px; margin: 20px 0;"></div>
+    <p id="modal-msg" style="font-size: 1.2rem; max-width: 80%;"></p>
+    <button onclick="closeModal()" style="padding:15px 40px; font-size:20px; border-radius:10px; cursor:pointer; background: var(--success); color: white; border: none;">Continue</button>
 </div>
 
 <script>
-    let currentLvl = 1;
+    let currentLvl = 1;      // Current level being played
+    let maxUnlocked = 1;     // Furthest level unlocked
     let robotPos = { x: 0, y: 0 };
-    let goalPos = { x: 2, y: 2 };
+    let goalPos = { x: 0, y: 0 };
     let walls = [];
     let program = [];
-    let levelScores = {}; // Level: Stars
-    let startTime, timerInterval;
-    let timeLimit = 15;
-    let gridSize = 4;
+    let levelScores = {};    // Stores {levelNumber: starCount}
+    let timerInterval;
+    let timeRemaining;
+    let initialTimeLimit;
+    let gridSize;
 
-    function initLevel() {
+    function initLevel(lvl) {
+        currentLvl = lvl;
         clearInterval(timerInterval);
         program = [];
         updateQueue();
         
-        // Dynamic Difficulty Generator
-        gridSize = Math.min(4 + Math.floor(currentLvl / 5), 8);
-        timeLimit = Math.max(30 - (currentLvl * 0.5), 8);
+        // Settings based on level
+        gridSize = Math.min(4 + Math.floor(currentLvl / 6), 8);
+        initialTimeLimit = Math.max(25 - Math.floor(currentLvl / 2), 10);
+        timeRemaining = initialTimeLimit;
+        
         robotPos = { x: 0, y: 0 };
         goalPos = { x: gridSize - 1, y: gridSize - 1 };
         
-        // Create Walls (Level 3+ adds walls)
+        // Wall Generation
         walls = [];
-        if(currentLvl > 2) {
-            let wallCount = Math.min(currentLvl, 15);
-            for(let i=0; i<wallCount; i++){
+        if(currentLvl > 1) {
+            let wallCount = Math.min(currentLvl + 2, 20);
+            for(let i=0; i<wallCount; i++) {
                 let wx = Math.floor(Math.random() * gridSize);
                 let wy = Math.floor(Math.random() * gridSize);
                 if((wx!==0||wy!==0) && (wx!==goalPos.x||wy!==goalPos.y)) walls.push(`${wx},${wy}`);
@@ -83,122 +113,144 @@
         }
 
         renderGrid();
+        renderSidebar();
         startTimer();
+        updateStarUI(3);
         document.getElementById('lvl-num').innerText = currentLvl;
+        document.getElementById('modal').style.display = 'none';
     }
 
     function renderGrid() {
         const grid = document.getElementById('grid');
-        grid.style.gridTemplateColumns = `repeat(${gridSize}, 45px)`;
+        grid.style.gridTemplateColumns = `repeat(${gridSize}, 40px)`;
         grid.innerHTML = '';
         for (let y = 0; y < gridSize; y++) {
             for (let x = 0; x < gridSize; x++) {
                 const cell = document.createElement('div');
-                cell.className = 'cell';
-                if (walls.includes(`${x},${y}`)) cell.classList.add('wall');
+                cell.className = 'cell' + (walls.includes(`${x},${y}`) ? ' wall' : '');
                 if (x === robotPos.x && y === robotPos.y) cell.innerText = '🤖';
-                else if (x === goalPos.x && y === goalPos.y) cell.innerText = '⭐';
+                else if (x === goalPos.x && y === goalPos.y) cell.innerText = '✨';
                 grid.appendChild(cell);
             }
         }
     }
 
     function startTimer() {
-        startTime = Date.now();
+        document.getElementById('timer').innerText = timeRemaining;
         timerInterval = setInterval(() => {
-            let elapsed = Math.floor((Date.now() - startTime) / 1000);
-            document.getElementById('timer').innerText = elapsed;
-            if(elapsed > timeLimit * 2) { // Auto fail if they take way too long
+            timeRemaining--;
+            document.getElementById('timer').innerText = Math.max(timeRemaining, 0);
+            
+            // Star Degradation Logic
+            if (timeRemaining > 0) updateStarUI(3);
+            else if (timeRemaining <= 0 && timeRemaining > -(initialTimeLimit * 0.2)) updateStarUI(2);
+            else updateStarUI(1);
+
+            if (timeRemaining < -(initialTimeLimit * 0.5)) { // Hard fail if too slow
                 clearInterval(timerInterval);
-                alert("Time's Up! Be faster!");
-                resetLevel();
+                alert("Too slow! The Robot ran out of battery. Try again!");
+                initLevel(currentLvl);
             }
         }, 1000);
     }
 
-    function addCmd(c) { program.push(c); updateQueue(); }
-    function updateQueue() { document.getElementById('program-queue').innerText = program.join(' '); }
-    function resetLevel() { initLevel(); }
+    function updateStarUI(count) {
+        const box = document.getElementById('star-rating');
+        box.innerHTML = '<span class="star-active">⭐</span>'.repeat(count) + 
+                        '<span class="star-empty">⭐</span>'.repeat(3 - count);
+    }
+
+    function renderSidebar() {
+        const sideGrid = document.getElementById('sidebar-grid');
+        sideGrid.innerHTML = '';
+        for (let i = 1; i <= 36; i++) {
+            const btn = document.createElement('button');
+            btn.className = 'lvl-btn';
+            btn.innerText = i;
+            
+            if (i === currentLvl) btn.classList.add('active');
+            
+            if (i <= maxUnlocked) {
+                btn.classList.add('unlocked');
+                btn.onclick = () => initLevel(i);
+                if (levelScores[i] === 3) btn.classList.add('completed-3');
+                else if (levelScores[i]) btn.classList.add('completed-less');
+            } else {
+                btn.innerText = '🔒';
+            }
+            sideGrid.appendChild(btn);
+        }
+    }
 
     async function execute() {
         clearInterval(timerInterval);
-        let timeTaken = (Date.now() - startTime) / 1000;
-
         for (let cmd of program) {
-            let oldPos = {...robotPos};
-            if (cmd === '⬅️') robotPos.x--;
-            if (cmd === '➡️') robotPos.x++;
-            if (cmd === '⬆️') robotPos.y--;
-            if (cmd === '⬇️') robotPos.y++;
+            let next = {...robotPos};
+            if (cmd === '⬅️') next.x--;
+            if (cmd === '➡️') next.x++;
+            if (cmd === '⬆️') next.y--;
+            if (cmd === '⬇️') next.y++;
 
-            // Collision Check
-            if (robotPos.x < 0 || robotPos.x >= gridSize || robotPos.y < 0 || robotPos.y >= gridSize || walls.includes(`${robotPos.x},${robotPos.y}`)) {
-                robotPos = {...oldPos}; // Stop at walls/edge
+            if (next.x >= 0 && next.x < gridSize && next.y >= 0 && next.y < gridSize && !walls.includes(`${next.x},${next.y}`)) {
+                robotPos = next;
             }
             renderGrid();
-            await new Promise(r => setTimeout(r, 300));
-
+            await new Promise(r => setTimeout(r, 250));
             if (robotPos.x === goalPos.x && robotPos.y === goalPos.y) {
-                calculateStars(timeTaken);
+                winLevel();
                 return;
             }
         }
-        alert("Oh no! The robot didn't reach the star. Try again!");
-        resetLevel();
+        alert("Destination not reached!");
+        initLevel(currentLvl);
     }
 
-    function calculateStars(time) {
+    function winLevel() {
         let stars = 1;
-        if (time <= timeLimit) stars = 3;
-        else if (time <= timeLimit * 1.2) stars = 2;
+        if (timeRemaining > 0) stars = 3;
+        else if (timeRemaining > -(initialTimeLimit * 0.2)) stars = 2;
         
-        levelScores[currentLvl] = stars;
-        showWin(stars);
+        levelScores[currentLvl] = Math.max(stars, levelScores[currentLvl] || 0);
+        
+        // Gatekeeping Logic
+        let lockMsg = checkGate(currentLvl + 1);
+        if(!lockMsg && currentLvl < 36) {
+            if (currentLvl === maxUnlocked) maxUnlocked++;
+            showModal("Goal Reached!", stars, "Next level unlocked!");
+        } else if (lockMsg) {
+            showModal("Locked!", stars, lockMsg);
+        } else {
+            showModal("🏆 GRAND CHAMPION!", stars, "You completed the final challenge!");
+        }
     }
 
-    function checkLocks() {
-        let prevLevels = currentLvl;
-        let threeStarCount = Object.values(levelScores).filter(s => s === 3).length;
-
-        if (currentLvl === 9) { // Check for Level 10
-            if (threeStarCount < 6) return "You need 3 stars in 6 levels to unlock Level 10!";
-        }
-        if (currentLvl === 19) { // Check for Level 20
-            if (threeStarCount < 12) return "You need 3 stars in 12 levels to unlock Level 20!";
-        }
-        if (currentLvl === 29) { // Check for Level 30
-             if (threeStarCount < 24) return "You need 3 stars in 24 levels to unlock Level 30!";
-        }
-        if (currentLvl === 35) { // Check for Final Level
-            if (threeStarCount < 35) return "Perfect 3-star score in ALL levels required for the Final Challenge!";
-        }
+    function checkGate(targetLvl) {
+        const threeStars = Object.values(levelScores).filter(s => s === 3).length;
+        if (targetLvl === 10 && threeStars < 6) return "Collect 3 stars in 6 levels to reach Level 10!";
+        if (targetLvl === 20 && threeStars < 12) return "Collect 3 stars in 12 levels to reach Level 20!";
+        if (targetLvl === 30 && threeStars < 24) return "Collect 3 stars in 24 levels to reach Level 30!";
+        if (targetLvl === 36 && threeStars < 35) return "Perfect 3-star record needed for the Final Level!";
         return null;
     }
 
-    function showWin(stars) {
-        const modal = document.getElementById('modal');
-        const starBox = document.getElementById('modal-stars');
-        starBox.innerHTML = '⭐'.repeat(stars) + '☆'.repeat(3-stars);
-        
-        let lockMsg = checkLocks();
-        if(lockMsg) {
-            document.getElementById('modal-title').innerText = "Locked!";
-            document.getElementById('modal-msg').innerText = lockMsg;
-            // User stays on current level until they re-try for better stars
-        } else {
-            document.getElementById('modal-title').innerText = "Awesome!";
-            document.getElementById('modal-msg').innerText = `You finished in ${Math.floor(timeTaken)} seconds!`;
-            currentLvl++;
-        }
-        modal.style.display = 'flex';
+    function showModal(title, stars, msg) {
+        const m = document.getElementById('modal');
+        document.getElementById('modal-title').innerText = title;
+        document.getElementById('modal-stars').innerHTML = '⭐'.repeat(stars) + '☆'.repeat(3-stars);
+        document.getElementById('modal-msg').innerText = msg;
+        m.style.display = 'flex';
     }
 
     function closeModal() {
-        document.getElementById('modal').style.display = 'none';
-        initLevel();
+        if (currentLvl < maxUnlocked) initLevel(currentLvl + 1);
+        else initLevel(currentLvl);
     }
 
-    initLevel();
+    function addCmd(c) { if(program.length < 15) { program.push(c); updateQueue(); } }
+    function updateQueue() { document.getElementById('program-queue').innerText = "Queue: " + program.join(' '); }
+    function resetLevel() { program = []; updateQueue(); }
+
+    initLevel(1);
 </script>
 </body>
 </html>

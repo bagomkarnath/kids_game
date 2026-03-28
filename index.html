@@ -8,10 +8,10 @@
         :root { --primary: #4f46e5; --success: #10b981; --warn: #f59e0b; --danger: #ef4444; --bg: #f0f4f8; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); display: flex; justify-content: center; padding: 20px; margin: 0; }
         
-        #main-container { display: flex; gap: 20px; max-width: 900px; width: 100%; }
+        #main-container { display: flex; gap: 20px; max-width: 950px; width: 100%; }
         
         /* Game Area */
-        #game-box { flex: 2; background: white; border-radius: 20px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; }
+        #game-box { flex: 2; background: white; border-radius: 20px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; position: relative; }
         
         /* Sidebar Area */
         #sidebar { flex: 1; background: #fff; border-radius: 20px; padding: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); max-height: 85vh; overflow-y: auto; }
@@ -20,19 +20,24 @@
         .lvl-btn.unlocked { background: #3b82f6; color: white; }
         .lvl-btn.completed-3 { background: var(--success); color: white; }
         .lvl-btn.completed-less { background: var(--warn); color: white; }
-        .lvl-btn.active { outline: 4px solid #6366f1; transform: scale(1.1); z-index: 5; }
+        .lvl-btn.active { outline: 4px solid #6366f1; transform: scale(1.05); z-index: 5; }
 
         /* Game Elements */
         .grid { display: grid; gap: 4px; justify-content: center; margin: 15px auto; background: #cbd5e1; padding: 8px; border-radius: 10px; width: fit-content; }
-        .cell { width: 40px; height: 40px; background: white; display: flex; align-items: center; justify-content: center; font-size: 20px; border-radius: 4px; }
-        .wall { background: #475569 !important; }
-        .star-active { color: #fbbf24; font-size: 30px; text-shadow: 0 0 5px rgba(251, 191, 36, 0.5); }
-        .star-empty { color: #d1d5db; font-size: 30px; }
+        .cell { width: 45px; height: 45px; background: white; display: flex; align-items: center; justify-content: center; font-size: 24px; border-radius: 4px; transition: background 0.2s; }
+        .wall { background: #475569 !important; border-radius: 8px; }
+        .star-active { color: #fbbf24; font-size: 35px; }
+        .star-empty { color: #d1d5db; font-size: 35px; }
         
-        #program-queue { min-height: 40px; border: 2px dashed #cbd5e1; margin: 10px 0; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
-        .controls button { padding: 10px; font-size: 18px; border-radius: 8px; border: none; background: var(--primary); color: white; cursor: pointer; margin: 2px; }
+        #program-queue { min-height: 50px; border: 2px dashed #cbd5e1; margin: 10px 0; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 24px; background: #fdfdfd; }
+        .controls button { padding: 12px; font-size: 22px; border-radius: 10px; border: none; background: var(--primary); color: white; cursor: pointer; margin: 4px; transition: transform 0.1s; }
+        .controls button:active { transform: scale(0.9); }
         .run-btn { background: var(--success) !important; width: 100%; margin-top: 10px !important; font-weight: bold; }
         
+        /* Toast Notification */
+        #toast { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 10px 20px; border-radius: 30px; font-weight: bold; opacity: 0; transition: opacity 0.3s, top 0.3s; z-index: 1000; pointer-events: none; }
+        #toast.show { opacity: 1; top: 40px; }
+
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; color: white; flex-direction: column; z-index: 100; text-align: center; }
     </style>
 </head>
@@ -40,9 +45,10 @@
 
 <div id="main-container">
     <div id="game-box">
+        <div id="toast">Message goes here!</div>
         <h2 style="margin:0">🤖 Level <span id="lvl-num">1</span></h2>
         <div style="display: flex; justify-content: space-around; align-items: center; margin: 10px 0;">
-            <div style="font-size: 24px; font-weight: bold;">⏳ <span id="timer">20</span>s</div>
+            <div style="font-size: 28px; font-weight: bold; color: #1e293b;">⏳ <span id="timer">20</span>s</div>
             <div id="star-rating">
                 <span class="star-active">⭐</span><span class="star-active">⭐</span><span class="star-active">⭐</span>
             </div>
@@ -62,26 +68,26 @@
     </div>
 
     <div id="sidebar">
-        <h3 style="margin-top:0">Level Map</h3>
+        <h3 style="margin-top:0">Level Progress</h3>
         <div class="lvl-grid" id="sidebar-grid"></div>
     </div>
 </div>
 
 <div id="modal" class="modal">
     <h1 id="modal-title">Success!</h1>
-    <div id="modal-stars" style="font-size: 60px; margin: 20px 0;"></div>
-    <p id="modal-msg" style="font-size: 1.2rem; max-width: 80%;"></p>
-    <button onclick="closeModal()" style="padding:15px 40px; font-size:20px; border-radius:10px; cursor:pointer; background: var(--success); color: white; border: none;">Continue</button>
+    <div id="modal-stars" style="font-size: 70px; margin: 20px 0;"></div>
+    <p id="modal-msg" style="font-size: 1.4rem; margin-bottom: 30px;"></p>
+    <button onclick="closeModal()" style="padding:15px 50px; font-size:24px; border-radius:15px; cursor:pointer; background: var(--success); color: white; border: none; font-weight: bold;">Continue ➡️</button>
 </div>
 
 <script>
-    let currentLvl = 1;      // Current level being played
-    let maxUnlocked = 1;     // Furthest level unlocked
+    let currentLvl = 1;
+    let maxUnlocked = 1;
     let robotPos = { x: 0, y: 0 };
     let goalPos = { x: 0, y: 0 };
     let walls = [];
     let program = [];
-    let levelScores = {};    // Stores {levelNumber: starCount}
+    let levelScores = {}; 
     let timerInterval;
     let timeRemaining;
     let initialTimeLimit;
@@ -93,7 +99,6 @@
         program = [];
         updateQueue();
         
-        // Settings based on level
         gridSize = Math.min(4 + Math.floor(currentLvl / 6), 8);
         initialTimeLimit = Math.max(25 - Math.floor(currentLvl / 2), 10);
         timeRemaining = initialTimeLimit;
@@ -101,16 +106,7 @@
         robotPos = { x: 0, y: 0 };
         goalPos = { x: gridSize - 1, y: gridSize - 1 };
         
-        // Wall Generation
-        walls = [];
-        if(currentLvl > 1) {
-            let wallCount = Math.min(currentLvl + 2, 20);
-            for(let i=0; i<wallCount; i++) {
-                let wx = Math.floor(Math.random() * gridSize);
-                let wy = Math.floor(Math.random() * gridSize);
-                if((wx!==0||wy!==0) && (wx!==goalPos.x||wy!==goalPos.y)) walls.push(`${wx},${wy}`);
-            }
-        }
+        generateValidMap();
 
         renderGrid();
         renderSidebar();
@@ -120,9 +116,60 @@
         document.getElementById('modal').style.display = 'none';
     }
 
+    // --- SMART PATH VALIDATION ---
+    function generateValidMap() {
+        let attempts = 0;
+        let valid = false;
+        
+        while (!valid && attempts < 100) {
+            walls = [];
+            if(currentLvl > 1) {
+                let wallProbability = Math.min(0.1 + (currentLvl * 0.01), 0.3);
+                for (let y = 0; y < gridSize; y++) {
+                    for (let x = 0; x < gridSize; x++) {
+                        if ((x === 0 && y === 0) || (x === goalPos.x && y === goalPos.y)) continue;
+                        if (Math.random() < wallProbability) walls.push(`${x},${y}`);
+                    }
+                }
+            }
+            valid = checkPathExists();
+            attempts++;
+        }
+    }
+
+    function checkPathExists() {
+        let queue = [{x: 0, y: 0}];
+        let visited = new Set(['0,0']);
+        
+        while (queue.length > 0) {
+            let curr = queue.shift();
+            if (curr.x === goalPos.x && curr.y === goalPos.y) return true;
+            
+            let directions = [{x:1,y:0}, {x:-1,y:0}, {x:0,y:1}, {x:0,y:-1}];
+            for (let d of directions) {
+                let nx = curr.x + d.x, ny = curr.y + d.y;
+                let key = `${nx},${ny}`;
+                if (nx >= 0 && nx < gridSize && ny >= 0 && ny < gridSize && !walls.includes(key) && !visited.has(key)) {
+                    visited.add(key);
+                    queue.push({x: nx, y: ny});
+                }
+            }
+        }
+        return false;
+    }
+
+    // --- UI HELPERS ---
+    function showToast(msg, color = "#333") {
+        const t = document.getElementById('toast');
+        t.innerText = msg;
+        t.style.background = color;
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 2500);
+    }
+
     function renderGrid() {
         const grid = document.getElementById('grid');
-        grid.style.gridTemplateColumns = `repeat(${gridSize}, 40px)`;
+        grid.style.gridTemplateColumns = `repeat(${gridSize}, 45px)`;
         grid.innerHTML = '';
         for (let y = 0; y < gridSize; y++) {
             for (let x = 0; x < gridSize; x++) {
@@ -141,15 +188,14 @@
             timeRemaining--;
             document.getElementById('timer').innerText = Math.max(timeRemaining, 0);
             
-            // Star Degradation Logic
             if (timeRemaining > 0) updateStarUI(3);
             else if (timeRemaining <= 0 && timeRemaining > -(initialTimeLimit * 0.2)) updateStarUI(2);
             else updateStarUI(1);
 
-            if (timeRemaining < -(initialTimeLimit * 0.5)) { // Hard fail if too slow
+            if (timeRemaining < -(initialTimeLimit * 0.6)) {
                 clearInterval(timerInterval);
-                alert("Too slow! The Robot ran out of battery. Try again!");
-                initLevel(currentLvl);
+                showToast("Low Battery! Restarting...", "var(--danger)");
+                setTimeout(() => initLevel(currentLvl), 1000);
             }
         }, 1000);
     }
@@ -167,7 +213,6 @@
             const btn = document.createElement('button');
             btn.className = 'lvl-btn';
             btn.innerText = i;
-            
             if (i === currentLvl) btn.classList.add('active');
             
             if (i <= maxUnlocked) {
@@ -183,6 +228,7 @@
     }
 
     async function execute() {
+        if (program.length === 0) { showToast("Add moves first!"); return; }
         clearInterval(timerInterval);
         for (let cmd of program) {
             let next = {...robotPos};
@@ -193,6 +239,8 @@
 
             if (next.x >= 0 && next.x < gridSize && next.y >= 0 && next.y < gridSize && !walls.includes(`${next.x},${next.y}`)) {
                 robotPos = next;
+            } else {
+                showToast("Bloop! Hit a wall.", "var(--warn)");
             }
             renderGrid();
             await new Promise(r => setTimeout(r, 250));
@@ -201,8 +249,8 @@
                 return;
             }
         }
-        alert("Destination not reached!");
-        initLevel(currentLvl);
+        showToast("Missed it! Try again.", "#666");
+        setTimeout(() => initLevel(currentLvl), 1200);
     }
 
     function winLevel() {
@@ -212,24 +260,23 @@
         
         levelScores[currentLvl] = Math.max(stars, levelScores[currentLvl] || 0);
         
-        // Gatekeeping Logic
         let lockMsg = checkGate(currentLvl + 1);
         if(!lockMsg && currentLvl < 36) {
             if (currentLvl === maxUnlocked) maxUnlocked++;
-            showModal("Goal Reached!", stars, "Next level unlocked!");
+            showModal("Good Job!", stars, "Level " + (currentLvl + 1) + " is now open!");
         } else if (lockMsg) {
             showModal("Locked!", stars, lockMsg);
         } else {
-            showModal("🏆 GRAND CHAMPION!", stars, "You completed the final challenge!");
+            showModal("🏆 YOU DID IT!", stars, "36 Levels Complete!");
         }
     }
 
     function checkGate(targetLvl) {
         const threeStars = Object.values(levelScores).filter(s => s === 3).length;
-        if (targetLvl === 10 && threeStars < 6) return "Collect 3 stars in 6 levels to reach Level 10!";
-        if (targetLvl === 20 && threeStars < 12) return "Collect 3 stars in 12 levels to reach Level 20!";
-        if (targetLvl === 30 && threeStars < 24) return "Collect 3 stars in 24 levels to reach Level 30!";
-        if (targetLvl === 36 && threeStars < 35) return "Perfect 3-star record needed for the Final Level!";
+        if (targetLvl === 10 && threeStars < 6) return "Get 3 stars in 6 levels to reach Level 10!";
+        if (targetLvl === 20 && threeStars < 12) return "Get 3 stars in 12 levels to reach Level 20!";
+        if (targetLvl === 30 && threeStars < 24) return "Get 3 stars in 24 levels to reach Level 30!";
+        if (targetLvl === 36 && threeStars < 35) return "Need 35 perfect levels for the Finale!";
         return null;
     }
 

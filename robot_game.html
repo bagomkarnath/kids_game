@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code-a-Bot Adventure</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            text-align: center;
+            background-color: #f0f9ff;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+        #game-container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(5, 50px);
+            grid-template-rows: repeat(5, 50px);
+            gap: 5px;
+            justify-content: center;
+            margin: 20px 0;
+            background: #e2e8f0;
+            padding: 10px;
+            border-radius: 10px;
+        }
+        .cell {
+            width: 50px;
+            height: 50px;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            border-radius: 5px;
+        }
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        button {
+            padding: 15px 20px;
+            font-size: 18px;
+            cursor: pointer;
+            border: none;
+            border-radius: 10px;
+            background: #3b82f6;
+            color: white;
+            transition: transform 0.1s;
+        }
+        button:active { transform: scale(0.95); }
+        .run-btn { background: #10b981; width: 100%; margin-top: 10px; font-weight: bold; }
+        .clear-btn { background: #ef4444; }
+        #program-display {
+            margin-top: 15px;
+            min-height: 40px;
+            background: #f8fafc;
+            padding: 10px;
+            border: 2px dashed #cbd5e1;
+            border-radius: 10px;
+            font-size: 24px;
+        }
+        .status { font-weight: bold; margin: 10px 0; height: 20px; color: #1e40af; }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        <h1>🤖 Code-a-Bot!</h1>
+        <p>Help the Robot get to the Star! ✨</p>
+        
+        <div id="status" class="status"></div>
+
+        <div class="grid" id="grid"></div>
+
+        <div id="program-display">Queue: </div>
+
+        <div class="controls">
+            <button onclick="addCommand('⬅️')">⬅️</button>
+            <button onclick="addCommand('⬆️')">⬆️</button>
+            <button onclick="addCommand('⬇️')">⬇️</button>
+            <button onclick="addCommand('➡️')">➡️</button>
+            <button class="clear-btn" onclick="clearProgram()">❌ Reset</button>
+            <button class="run-btn" onclick="runProgram()">▶️ RUN PROGRAM!</button>
+        </div>
+    </div>
+
+    <script>
+        const size = 5;
+        let robotPos = { x: 0, y: 0 };
+        const goalPos = { x: 4, y: 4 };
+        let program = [];
+
+        function createGrid() {
+            const gridEl = document.getElementById('grid');
+            gridEl.innerHTML = '';
+            for (let y = 0; y < size; y++) {
+                for (let x = 0; x < size; x++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    if (x === robotPos.x && y === robotPos.y) cell.innerText = '🤖';
+                    else if (x === goalPos.x && y === goalPos.y) cell.innerText = '⭐';
+                    gridEl.appendChild(cell);
+                }
+            }
+        }
+
+        function addCommand(cmd) {
+            if (program.length < 10) {
+                program.push(cmd);
+                updateDisplay();
+            }
+        }
+
+        function updateDisplay() {
+            document.getElementById('program-display').innerText = "Queue: " + program.join(' ');
+        }
+
+        function clearProgram() {
+            program = [];
+            robotPos = { x: 0, y: 0 };
+            document.getElementById('status').innerText = "";
+            updateDisplay();
+            createGrid();
+        }
+
+        async function runProgram() {
+            const status = document.getElementById('status');
+            for (let cmd of program) {
+                if (cmd === '⬅️' && robotPos.x > 0) robotPos.x--;
+                else if (cmd === '➡️' && robotPos.x < size - 1) robotPos.x++;
+                else if (cmd === '⬆️' && robotPos.y > 0) robotPos.y--;
+                else if (cmd === '⬇️' && robotPos.y < size - 1) robotPos.y++;
+                
+                createGrid();
+                await new Promise(r => setTimeout(r, 400)); // Pause for visual effect
+
+                if (robotPos.x === goalPos.x && robotPos.y === goalPos.y) {
+                    status.innerText = "🎉 YOU WIN! GREAT CODING!";
+                    return;
+                }
+            }
+            if (robotPos.x !== goalPos.x || robotPos.y !== goalPos.y) {
+                status.innerText = "❌ Not quite there! Try again.";
+            }
+        }
+
+        createGrid();
+    </script>
+</body>
+</html>

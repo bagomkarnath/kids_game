@@ -5,109 +5,120 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Code-a-Bot: The 36 Challenge</title>
     <style>
-        :root { --primary: #4f46e5; --success: #10b981; --warn: #f59e0b; --danger: #ef4444; --bg: #f0f4f8; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); display: flex; justify-content: center; padding: 20px; margin: 0; }
-        
-        #main-container { display: flex; gap: 20px; max-width: 950px; width: 100%; }
+        :root { 
+            --primary: #6366f1; --success: #22c55e; --warn: #eab308; --danger: #ef4444; --bg: #f8fafc;
+            --btn-up: linear-gradient(135deg, #60a5fa, #3b82f6);
+            --btn-down: linear-gradient(135deg, #fb923c, #f97316);
+            --btn-left: linear-gradient(135deg, #a78bfa, #8b5cf6);
+            --btn-right: linear-gradient(135deg, #f472b6, #ec4899);
+        }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); display: flex; justify-content: center; padding: 20px; margin: 0; }
+        #main-container { display: flex; gap: 20px; max-width: 1000px; width: 100%; }
         
         /* Game Area */
-        #game-box { flex: 2; background: white; border-radius: 20px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; position: relative; }
+        #game-box { flex: 2; background: white; border-radius: 24px; padding: 25px; box-shadow: 0 20px 50px rgba(0,0,0,0.05); text-align: center; position: relative; border: 1px solid #e2e8f0; }
         
         /* Sidebar Area */
-        #sidebar { flex: 1; background: #fff; border-radius: 20px; padding: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); max-height: 85vh; overflow-y: auto; }
-        .lvl-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-        .lvl-btn { aspect-ratio: 1; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; background: #e2e8f0; color: #94a3b8; font-size: 14px; transition: 0.2s; }
-        .lvl-btn.unlocked { background: #3b82f6; color: white; }
-        .lvl-btn.completed-3 { background: var(--success); color: white; }
-        .lvl-btn.completed-less { background: var(--warn); color: white; }
-        .lvl-btn.active { outline: 4px solid #6366f1; transform: scale(1.05); z-index: 5; }
+        #sidebar { flex: 1; background: #fff; border-radius: 24px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); max-height: 90vh; overflow-y: auto; border: 1px solid #e2e8f0; }
+        .lvl-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+        .lvl-btn { aspect-ratio: 1; border: none; border-radius: 12px; font-weight: bold; cursor: default; background: #f1f5f9; color: #cbd5e1; font-size: 16px; transition: 0.3s; }
+        .lvl-btn.unlocked { background: #dbeafe; color: #1e40af; cursor: pointer; }
+        .lvl-btn.completed-3 { background: #dcfce7; color: #166534; cursor: pointer; }
+        .lvl-btn.completed-less { background: #fef9c3; color: #854d0e; cursor: pointer; }
+        .lvl-btn.active { box-shadow: 0 0 0 4px #6366f1; transform: scale(1.05); }
 
-        /* Game Elements */
-        .grid { display: grid; gap: 4px; justify-content: center; margin: 15px auto; background: #cbd5e1; padding: 8px; border-radius: 10px; width: fit-content; }
-        .cell { width: 45px; height: 45px; background: white; display: flex; align-items: center; justify-content: center; font-size: 24px; border-radius: 4px; transition: background 0.2s; }
-        .wall { background: #475569 !important; border-radius: 8px; }
-        .star-active { color: #fbbf24; font-size: 35px; }
-        .star-empty { color: #d1d5db; font-size: 35px; }
+        /* Grid Styling */
+        .grid { display: grid; gap: 6px; justify-content: center; margin: 20px auto; background: #f1f5f9; padding: 12px; border-radius: 16px; width: fit-content; border: 2px solid #e2e8f0; }
+        .cell { width: 50px; height: 50px; background: white; display: flex; align-items: center; justify-content: center; font-size: 32px; border-radius: 8px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); }
+        .wall { background: #475569 !important; transform: scale(0.9); border-radius: 10px; }
         
-        #program-queue { min-height: 50px; border: 2px dashed #cbd5e1; margin: 10px 0; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 24px; background: #fdfdfd; }
-        .controls button { padding: 12px; font-size: 22px; border-radius: 10px; border: none; background: var(--primary); color: white; cursor: pointer; margin: 4px; transition: transform 0.1s; }
-        .controls button:active { transform: scale(0.9); }
-        .run-btn { background: var(--success) !important; width: 100%; margin-top: 10px !important; font-weight: bold; }
+        /* New Animated Robot & Treasure */
+        .robot { animation: bounce 2s infinite ease-in-out; }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+
+        /* Engaging Direction Buttons */
+        .controls { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 20px; }
+        .cmd-btn { border: none; border-radius: 16px; padding: 15px 5px; color: white; cursor: pointer; font-size: 28px; transition: 0.2s; box-shadow: 0 4px 0 rgba(0,0,0,0.2); position: relative; }
+        .cmd-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(0,0,0,0.2); }
         
-        /* Toast Notification */
-        #toast { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 10px 20px; border-radius: 30px; font-weight: bold; opacity: 0; transition: opacity 0.3s, top 0.3s; z-index: 1000; pointer-events: none; }
+        .up { background: var(--btn-up); }
+        .down { background: var(--btn-down); }
+        .left { background: var(--btn-left); }
+        .right { background: var(--btn-right); }
+        
+        .action-btns { grid-column: span 4; display: flex; gap: 10px; margin-top: 5px; }
+        .clear-btn { flex: 1; background: #94a3b8; color: white; padding: 15px; border-radius: 16px; border: none; font-weight: bold; cursor: pointer; }
+        .run-btn { flex: 2; background: var(--success); color: white; padding: 15px; border-radius: 16px; border: none; font-weight: bold; cursor: pointer; font-size: 18px; box-shadow: 0 4px 0 #15803d; }
+        .run-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #15803d; }
+
+        #program-queue { min-height: 60px; border: 3px dashed #e2e8f0; margin: 15px 0; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 28px; background: #fafafa; gap: 5px; }
+        #toast { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 12px 24px; border-radius: 40px; font-weight: bold; opacity: 0; transition: 0.3s; z-index: 1000; }
         #toast.show { opacity: 1; top: 40px; }
-
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; color: white; flex-direction: column; z-index: 100; text-align: center; }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.9); display: none; align-items: center; justify-content: center; color: white; flex-direction: column; z-index: 100; text-align: center; }
     </style>
 </head>
 <body>
 
 <div id="main-container">
     <div id="game-box">
-        <div id="toast">Message goes here!</div>
-        <h2 style="margin:0">🤖 Level <span id="lvl-num">1</span></h2>
-        <div style="display: flex; justify-content: space-around; align-items: center; margin: 10px 0;">
-            <div style="font-size: 28px; font-weight: bold; color: #1e293b;">⏳ <span id="timer">20</span>s</div>
-            <div id="star-rating">
-                <span class="star-active">⭐</span><span class="star-active">⭐</span><span class="star-active">⭐</span>
-            </div>
+        <div id="toast">Message</div>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h2 style="margin:0; color: #475569;">Level <span id="lvl-num">1</span></h2>
+            <div style="font-size: 24px; font-weight: bold; background: #f1f5f9; padding: 5px 15px; border-radius: 12px;">⏳ <span id="timer">0</span>s</div>
+            <div id="star-rating" style="font-size: 30px;"></div>
         </div>
 
         <div id="grid" class="grid"></div>
-        <div id="program-queue">Queue: </div>
+        <div id="program-queue"></div>
 
         <div class="controls">
-            <button onclick="addCmd('⬅️')">⬅️</button>
-            <button onclick="addCmd('⬆️')">⬆️</button>
-            <button onclick="addCmd('⬇️')">⬇️</button>
-            <button onclick="addCmd('➡️')">➡️</button>
-            <button style="background:var(--danger)" onclick="resetLevel()">🔄 Clear</button>
-            <button class="run-btn" onclick="execute()">▶️ START PROGRAM</button>
+            <button class="cmd-btn left" onclick="addCmd('left')">⬅️</button>
+            <button class="cmd-btn up" onclick="addCmd('up')">⬆️</button>
+            <button class="cmd-btn down" onclick="addCmd('down')">⬇️</button>
+            <button class="cmd-btn right" onclick="addCmd('right')">➡️</button>
+            
+            <div class="action-btns">
+                <button class="clear-btn" onclick="resetLevel()">❌ Clear</button>
+                <button class="run-btn" onclick="execute()">🚀 RUN PROGRAM</button>
+            </div>
         </div>
     </div>
 
     <div id="sidebar">
-        <h3 style="margin-top:0">Level Progress</h3>
+        <h3 style="margin-top:0; color: #1e293b;">Level Map</h3>
         <div class="lvl-grid" id="sidebar-grid"></div>
     </div>
 </div>
 
 <div id="modal" class="modal">
-    <h1 id="modal-title">Success!</h1>
-    <div id="modal-stars" style="font-size: 70px; margin: 20px 0;"></div>
-    <p id="modal-msg" style="font-size: 1.4rem; margin-bottom: 30px;"></p>
-    <button onclick="closeModal()" style="padding:15px 50px; font-size:24px; border-radius:15px; cursor:pointer; background: var(--success); color: white; border: none; font-weight: bold;">Continue ➡️</button>
+    <h1 id="modal-title" style="font-size: 48px; margin: 0;">Excellent!</h1>
+    <div id="modal-stars" style="font-size: 80px; margin: 20px 0;"></div>
+    <p id="modal-msg" style="font-size: 1.5rem; color: #cbd5e1;"></p>
+    <button id="modal-btn" onclick="closeModal()" style="padding:18px 60px; font-size:24px; border-radius:20px; cursor:pointer; background: var(--success); color: white; border: none; font-weight: bold; margin-top: 20px;">Next Level</button>
 </div>
 
 <script>
-    let currentLvl = 1;
-    let maxUnlocked = 1;
-    let robotPos = { x: 0, y: 0 };
-    let goalPos = { x: 0, y: 0 };
-    let walls = [];
-    let program = [];
-    let levelScores = {}; 
-    let timerInterval;
-    let timeRemaining;
-    let initialTimeLimit;
-    let gridSize;
+    let currentLvl = 1, maxUnlocked = 1, robotPos = {x:0,y:0}, goalPos = {x:0,y:0}, walls = [], program = [], levelScores = {}, timerInterval, timeRemaining, initialTimeLimit, gridSize;
+
+    // Icons Mapping
+    const icons = {
+        up: '<span style="filter: drop-shadow(0 2px 2px rgba(0,0,0,0.2))">⬆️</span>',
+        down: '<span style="filter: drop-shadow(0 2px 2px rgba(0,0,0,0.2))">⬇️</span>',
+        left: '<span style="filter: drop-shadow(0 2px 2px rgba(0,0,0,0.2))">⬅️</span>',
+        right: '<span style="filter: drop-shadow(0 2px 2px rgba(0,0,0,0.2))">➡️</span>',
+        robot: '🤖',
+        goal: '🎁' // Changed to a gift box/treasure for more engagement
+    };
 
     function initLevel(lvl) {
-        currentLvl = lvl;
-        clearInterval(timerInterval);
-        program = [];
-        updateQueue();
-        
+        currentLvl = lvl; clearInterval(timerInterval); program = []; updateQueue();
         gridSize = Math.min(4 + Math.floor(currentLvl / 6), 8);
-        initialTimeLimit = Math.max(25 - Math.floor(currentLvl / 2), 10);
+        initialTimeLimit = Math.max(25 - (currentLvl * 0.5), 8);
         timeRemaining = initialTimeLimit;
-        
         robotPos = { x: 0, y: 0 };
         goalPos = { x: gridSize - 1, y: gridSize - 1 };
         
         generateValidMap();
-
         renderGrid();
         renderSidebar();
         startTimer();
@@ -116,20 +127,15 @@
         document.getElementById('modal').style.display = 'none';
     }
 
-    // --- SMART PATH VALIDATION ---
     function generateValidMap() {
-        let attempts = 0;
-        let valid = false;
-        
+        let attempts = 0, valid = false;
         while (!valid && attempts < 100) {
             walls = [];
-            if(currentLvl > 1) {
-                let wallProbability = Math.min(0.1 + (currentLvl * 0.01), 0.3);
-                for (let y = 0; y < gridSize; y++) {
-                    for (let x = 0; x < gridSize; x++) {
-                        if ((x === 0 && y === 0) || (x === goalPos.x && y === goalPos.y)) continue;
-                        if (Math.random() < wallProbability) walls.push(`${x},${y}`);
-                    }
+            let density = Math.min(0.05 + (currentLvl * 0.015), 0.35); 
+            for (let y = 0; y < gridSize; y++) {
+                for (let x = 0; x < gridSize; x++) {
+                    if ((x===0 && y===0) || (x===goalPos.x && y===goalPos.y)) continue;
+                    if (Math.random() < density) walls.push(`${x},${y}`);
                 }
             }
             valid = checkPathExists();
@@ -138,165 +144,135 @@
     }
 
     function checkPathExists() {
-        let queue = [{x: 0, y: 0}];
-        let visited = new Set(['0,0']);
-        
-        while (queue.length > 0) {
-            let curr = queue.shift();
-            if (curr.x === goalPos.x && curr.y === goalPos.y) return true;
-            
-            let directions = [{x:1,y:0}, {x:-1,y:0}, {x:0,y:1}, {x:0,y:-1}];
-            for (let d of directions) {
-                let nx = curr.x + d.x, ny = curr.y + d.y;
-                let key = `${nx},${ny}`;
-                if (nx >= 0 && nx < gridSize && ny >= 0 && ny < gridSize && !walls.includes(key) && !visited.has(key)) {
-                    visited.add(key);
-                    queue.push({x: nx, y: ny});
+        let q = [{x:0, y:0}], visited = new Set(['0,0']);
+        while(q.length > 0) {
+            let c = q.shift();
+            if(c.x === goalPos.x && c.y === goalPos.y) return true;
+            for(let d of [{x:1,y:0},{x:-1,y:0},{x:0,y:1},{x:0,y:-1}]) {
+                let nx=c.x+d.x, ny=c.y+d.y, k=`${nx},${ny}`;
+                if(nx>=0 && nx<gridSize && ny>=0 && ny<gridSize && !walls.includes(k) && !visited.has(k)) {
+                    visited.add(k); q.push({x:nx, y:ny});
                 }
             }
         }
         return false;
     }
 
-    // --- UI HELPERS ---
-    function showToast(msg, color = "#333") {
-        const t = document.getElementById('toast');
-        t.innerText = msg;
-        t.style.background = color;
-        t.classList.add('show');
-        setTimeout(() => t.classList.remove('show'), 2500);
-    }
-
-    function renderGrid() {
-        const grid = document.getElementById('grid');
-        grid.style.gridTemplateColumns = `repeat(${gridSize}, 45px)`;
-        grid.innerHTML = '';
-        for (let y = 0; y < gridSize; y++) {
-            for (let x = 0; x < gridSize; x++) {
-                const cell = document.createElement('div');
-                cell.className = 'cell' + (walls.includes(`${x},${y}`) ? ' wall' : '');
-                if (x === robotPos.x && y === robotPos.y) cell.innerText = '🤖';
-                else if (x === goalPos.x && y === goalPos.y) cell.innerText = '✨';
-                grid.appendChild(cell);
-            }
-        }
-    }
-
     function startTimer() {
-        document.getElementById('timer').innerText = timeRemaining;
+        document.getElementById('timer').innerText = Math.ceil(timeRemaining);
         timerInterval = setInterval(() => {
             timeRemaining--;
-            document.getElementById('timer').innerText = Math.max(timeRemaining, 0);
-            
+            document.getElementById('timer').innerText = Math.max(Math.ceil(timeRemaining), 0);
             if (timeRemaining > 0) updateStarUI(3);
-            else if (timeRemaining <= 0 && timeRemaining > -(initialTimeLimit * 0.2)) updateStarUI(2);
+            else if (timeRemaining > -(initialTimeLimit * 0.2)) updateStarUI(2);
             else updateStarUI(1);
 
-            if (timeRemaining < -(initialTimeLimit * 0.6)) {
+            if (timeRemaining < -(initialTimeLimit * 0.8)) {
                 clearInterval(timerInterval);
-                showToast("Low Battery! Restarting...", "var(--danger)");
+                showToast("Battery Empty!", "var(--danger)");
                 setTimeout(() => initLevel(currentLvl), 1000);
             }
         }, 1000);
     }
 
-    function updateStarUI(count) {
-        const box = document.getElementById('star-rating');
-        box.innerHTML = '<span class="star-active">⭐</span>'.repeat(count) + 
-                        '<span class="star-empty">⭐</span>'.repeat(3 - count);
-    }
-
-    function renderSidebar() {
-        const sideGrid = document.getElementById('sidebar-grid');
-        sideGrid.innerHTML = '';
-        for (let i = 1; i <= 36; i++) {
-            const btn = document.createElement('button');
-            btn.className = 'lvl-btn';
-            btn.innerText = i;
-            if (i === currentLvl) btn.classList.add('active');
-            
-            if (i <= maxUnlocked) {
-                btn.classList.add('unlocked');
-                btn.onclick = () => initLevel(i);
-                if (levelScores[i] === 3) btn.classList.add('completed-3');
-                else if (levelScores[i]) btn.classList.add('completed-less');
-            } else {
-                btn.innerText = '🔒';
-            }
-            sideGrid.appendChild(btn);
-        }
-    }
-
     async function execute() {
-        if (program.length === 0) { showToast("Add moves first!"); return; }
+        if (program.length === 0) return showToast("Add instructions!");
         clearInterval(timerInterval);
         for (let cmd of program) {
-            let next = {...robotPos};
-            if (cmd === '⬅️') next.x--;
-            if (cmd === '➡️') next.x++;
-            if (cmd === '⬆️') next.y--;
-            if (cmd === '⬇️') next.y++;
-
-            if (next.x >= 0 && next.x < gridSize && next.y >= 0 && next.y < gridSize && !walls.includes(`${next.x},${next.y}`)) {
-                robotPos = next;
+            let n = {...robotPos};
+            if(cmd==='left') n.x--; if(cmd==='right') n.x++; if(cmd==='up') n.y--; if(cmd==='down') n.y++;
+            if(n.x>=0 && n.x<gridSize && n.y>=0 && n.y<gridSize && !walls.includes(`${n.x},${n.y}`)) {
+                robotPos = n;
             } else {
-                showToast("Bloop! Hit a wall.", "var(--warn)");
+                showToast("Ouch! Wall.", "var(--warn)");
             }
             renderGrid();
-            await new Promise(r => setTimeout(r, 250));
-            if (robotPos.x === goalPos.x && robotPos.y === goalPos.y) {
-                winLevel();
-                return;
-            }
+            await new Promise(r => setTimeout(r, 300));
+            if(robotPos.x===goalPos.x && robotPos.y===goalPos.y) return winLevel();
         }
-        showToast("Missed it! Try again.", "#666");
-        setTimeout(() => initLevel(currentLvl), 1200);
+        showToast("Try again!");
+        setTimeout(() => initLevel(currentLvl), 1000);
     }
 
     function winLevel() {
         let stars = 1;
         if (timeRemaining > 0) stars = 3;
         else if (timeRemaining > -(initialTimeLimit * 0.2)) stars = 2;
-        
         levelScores[currentLvl] = Math.max(stars, levelScores[currentLvl] || 0);
         
         let lockMsg = checkGate(currentLvl + 1);
-        if(!lockMsg && currentLvl < 36) {
-            if (currentLvl === maxUnlocked) maxUnlocked++;
-            showModal("Good Job!", stars, "Level " + (currentLvl + 1) + " is now open!");
-        } else if (lockMsg) {
-            showModal("Locked!", stars, lockMsg);
+        const modalBtn = document.getElementById('modal-btn');
+        
+        if(!lockMsg) {
+            if (currentLvl === maxUnlocked && currentLvl < 36) maxUnlocked++;
+            showModal("Success!", stars, currentLvl === 36 ? "You are a Master Coder!" : "New Path Unlocked!");
+            modalBtn.innerText = "Continue";
         } else {
-            showModal("🏆 YOU DID IT!", stars, "36 Levels Complete!");
+            showModal("Not Enough Stars", stars, lockMsg);
+            modalBtn.innerText = "Try Level Again";
         }
     }
 
-    function checkGate(targetLvl) {
-        const threeStars = Object.values(levelScores).filter(s => s === 3).length;
-        if (targetLvl === 10 && threeStars < 6) return "Get 3 stars in 6 levels to reach Level 10!";
-        if (targetLvl === 20 && threeStars < 12) return "Get 3 stars in 12 levels to reach Level 20!";
-        if (targetLvl === 30 && threeStars < 24) return "Get 3 stars in 24 levels to reach Level 30!";
-        if (targetLvl === 36 && threeStars < 35) return "Need 35 perfect levels for the Finale!";
+    function checkGate(target) {
+        const threeS = Object.values(levelScores).filter(s => s === 3).length;
+        if (target === 10 && threeS < 6) return "Collect 3 stars in 6 levels to reach Level 10!";
+        if (target === 20 && threeS < 12) return "Collect 3 stars in 12 levels to reach Level 20!";
+        if (target === 30 && threeS < 24) return "Collect 3 stars in 24 levels to reach Level 30!";
+        if (target === 36 && threeS < 35) return "You need a perfect score to enter Level 36!";
         return null;
     }
 
-    function showModal(title, stars, msg) {
-        const m = document.getElementById('modal');
-        document.getElementById('modal-title').innerText = title;
-        document.getElementById('modal-stars').innerHTML = '⭐'.repeat(stars) + '☆'.repeat(3-stars);
-        document.getElementById('modal-msg').innerText = msg;
-        m.style.display = 'flex';
+    function renderGrid() {
+        const grid = document.getElementById('grid');
+        grid.style.gridTemplateColumns = `repeat(${gridSize}, 50px)`;
+        grid.innerHTML = '';
+        for (let y = 0; y < gridSize; y++) {
+            for (let x = 0; x < gridSize; x++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell' + (walls.includes(`${x},${y}`) ? ' wall' : '');
+                if (x === robotPos.x && y === robotPos.y) cell.innerHTML = `<span class="robot">${icons.robot}</span>`;
+                else if (x === goalPos.x && y === goalPos.y) cell.innerHTML = icons.goal;
+                grid.appendChild(cell);
+            }
+        }
+    }
+
+    function renderSidebar() {
+        const sg = document.getElementById('sidebar-grid'); sg.innerHTML = '';
+        for (let i=1; i<=36; i++) {
+            const b = document.createElement('button'); b.className = 'lvl-btn'; b.innerText = i;
+            if(i <= maxUnlocked) {
+                b.classList.add('unlocked'); b.onclick = () => initLevel(i);
+                if(levelScores[i]===3) b.classList.add('completed-3');
+                else if(levelScores[i]) b.classList.add('completed-less');
+            } else { b.innerText = '🔒'; }
+            if(i === currentLvl) b.classList.add('active');
+            sg.appendChild(b);
+        }
+    }
+
+    function showModal(t, s, m) {
+        document.getElementById('modal-title').innerText = t;
+        document.getElementById('modal-stars').innerHTML = '⭐'.repeat(s) + '<span style="opacity:0.2">⭐</span>'.repeat(3-s);
+        document.getElementById('modal-msg').innerText = m;
+        document.getElementById('modal').style.display = 'flex';
     }
 
     function closeModal() {
-        if (currentLvl < maxUnlocked) initLevel(currentLvl + 1);
-        else initLevel(currentLvl);
+        let next = currentLvl;
+        if (currentLvl < maxUnlocked) next = currentLvl + 1;
+        initLevel(next);
     }
 
-    function addCmd(c) { if(program.length < 15) { program.push(c); updateQueue(); } }
-    function updateQueue() { document.getElementById('program-queue').innerText = "Queue: " + program.join(' '); }
+    function updateStarUI(c) { document.getElementById('star-rating').innerHTML = '⭐'.repeat(c) + '<span style="opacity:0.2">⭐</span>'.repeat(3-c); }
+    function showToast(m, c="#1e293b") { const t=document.getElementById('toast'); t.innerText=m; t.style.background=c; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2000); }
+    function addCmd(c) { if(program.length < 20) { program.push(c); updateQueue(); } }
+    function updateQueue() { 
+        const q = document.getElementById('program-queue');
+        q.innerHTML = program.map(cmd => icons[cmd]).join(' ');
+    }
     function resetLevel() { program = []; updateQueue(); }
-
+    
     initLevel(1);
 </script>
 </body>
